@@ -39,25 +39,31 @@ recebe e trata 3 ou mais sinais (sigkill tem que terminar a execução do progra
 print diferent message for each signal
 busy wait e blocking wait (parametro)*/
 
-int signal_receiver(int sig) {
+void signal_receiver(int sig) {
     switch (sig) {
         case SIGINT: printf("Signal SIGINT capturado");
         case SIGSEGV: printf("Signal SIGSEGV capturado");
         case SIGILL: printf("Signal SIGILL capturado");
         case SIGTERM: printf("Signal SIGTERM capturado");
     }
+    printf("didnt enter the switch");
 }
 
 /*
  * 
  */
 int main(int argc, char** argv) {
+    printf("main");
     if (fork() == 0) { /* processus fils */
+        printf("child process");
         int sun = getpid();
-        send_signal_to(sun,SIGINT);
-        
+        send_signal_to(sun, SIGINT);
+
     }
-    signal_receiver(SIGINT);
+    printf("main process");
+
+    signal(SIGINT, signal_receiver);
+    //    signal_receiver(SIGINT);
     return (EXIT_SUCCESS);
 }
 
