@@ -2,9 +2,9 @@
  * File:   ex1.c
  * Author: Jean-Loïc Mugnier <mugnier at polytech.unice.fr>
  *
- * Created on April 26, 2016, 11:28 PM
+ * Created on April 18, 2016, 11:28 PM
  */
-
+#define _POSIX_SOURC
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -14,35 +14,6 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <errno.h>
-
-
-
-/*
- 1) 1o programa
-send_signal_to(pid,sig)
-if(pid doesnt exist)
-    return error
-else
-    send sig to process(with pid)
- */
-
-/*
-2o programa
-signal_receiver
-recebe e trata 3 ou mais sinais (sigkill tem que terminar a execução do programa)
-print diferent message for each signal
-busy wait e blocking wait (parametro)*/
-//
-//void signal_receiver(int sig) {
-//    switch (sig) {
-//        case SIGINT: printf("Signal SIGINT capturado\n");
-//        case SIGSEGV: printf("Signal SIGSEGV capturado");
-//        case SIGILL: printf("Signal SIGILL capturado");
-//        case SIGTERM: printf("Signal SIGTERM capturado");
-//    }
-//    printf("didnt enter the switch");
-//}
 
 int send_signal_to(long pid, int sig) {
     int i = kill(pid, sig);
@@ -51,14 +22,25 @@ int send_signal_to(long pid, int sig) {
         perror("end of process!\nbye bye");
         exit(1);
     }
-    printf("Signal %d sent to process wich pid is : %lu ",sig ,pid);
+    printf("Signal %d sent to process wich pid is : %lu ", sig, pid);
     return 0;
 }
 
 void sigint_handler(int sig) {
     signal(SIGINT, SIG_IGN); //ctrl + c    
     printf("Signal SIGINT capturado\n");
-    signal(SIGINT, sigint_handler); //ctrl + c    
+
+}
+
+void sigill_handler(int sig) {
+    signal(SIGILL, SIG_IGN); //ctrl + c    
+    printf("Signal SIGILL capturado\n");
+
+}
+
+void sigterm_handler(int sig) {
+    signal(SIGTERM, SIG_IGN); //ctrl + c    
+    printf("Signal SIGTERM capturado\n");
 
 }
 
@@ -69,29 +51,34 @@ void sigint_handler(int sig) {
  */
 int main(int argc, char** argv) {
     char *p;
+    int i = 1;
     long arg1 = strtol(argv[1], &p, 10);
     if (arg1 == 1) {//sender
-        printf("SENDING MODE");
+        printf("SENDING MODE\n\n");
         long arg2 = strtol(argv[2], &p, 10);
         long arg3 = strtol(argv[3], &p, 10);
-        printf("%d\n\n", arg1);
         send_signal_to(arg2, (int) arg3);
 
 
     } else if (!arg1) {//receiver
         printf("RECEIVING MODE\n\n");
         printf("process is waiting for signal!!!\n");
-        printf("pid: %lu \n", (long) getpid());
+        printf("Waiting: pid: %lu \n", (long) getpid());
         signal(SIGINT, sigint_handler); //ctrl + c
-
-        while (1) {
-            sleep(1);
+        signal(SIGILL, sigill_handler);
+        signal(SIGTERM, sigterm_handler);
+        if (!strcmp(argv[2], "blocking")) {
+            while (1) {
+                sleep(1);
+            }
+        } else if (!strcmp(argv[2], "busy")) {
+            while (i > 0) {
+                i++;
+                sleep(1);
+            }
         }
 
     }
-    //    signal(SIGSEGV, SIG_IGN);
-    //    signal(SIGILL, SIG_IGN);
-    //    signal(SIGTERM, SIG_IGN);
 
     return (EXIT_SUCCESS);
 }
